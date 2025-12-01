@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Демографический дашборд: РФ до 2100 г.</title>
+  <title>Цифровая демографическая обсерватория: прогноз показателей субъектов РФ до 2100 г.</title>
   <!-- Библиотеки: Plotly для графиков, PapaParse для CSV, SheetJS для XLSX -->
   <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -29,14 +29,14 @@
     .small{font-size:12px;color:var(--muted)}
     .legend-pill{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--grid);margin-right:6px;font-size:12px}
     .err{color:#b00020;font-size:13px}
-    footer{max-width:1200px;margin:24px auto 32px auto;padding:0 16px;color:var(--muted);font-size:12px}
+    footer{max-width:1200px;margin:24px auto 32px auto;padding:0 16px;color:var(--muted);font-size:12px;text-align:center}
     @media (max-width:900px){ .panel{grid-template-columns:1fr} .grid2{grid-template-columns:1fr} .row{grid-template-columns:1fr} .row4{grid-template-columns:1fr 1fr} }
   </style>
 </head>
 <body>
 <header>
-  <h1>Демографический дашборд РФ до 2100 г.</h1>
-  <div class="sub">Интерактивные графики по субъектам РФ: рождаемость (TFR), ожидаемая продолжительность жизни (ОПЖ), миграция (приток/отток/сальдо) и половозрастная пирамида. Факт и прогноз показаны разными стилями.</div>
+  <h1>Цифровая демографическая обсерватория: прогноз показателей субъектов РФ до 2100 г.</h1>
+  <div class="sub">Исследование выполнено за счёт средств гранта Российского научного фонда № 25-78-30004 «Цифровая демографическая обсерватория: разработка системы мониторинга демографических процессов в регионах России с использованием ГИС-технологий и больших данных», <a href="https://rscf.ru/project/25-78-30004/" target="_blank" rel="noopener">https://rscf.ru/project/25-78-30004/</a></div>
 </header>
 <main>
   <div class="panel">
@@ -95,19 +95,12 @@
   <div id="msg" class="small"></div>
 </main>
 <footer>
-  Файлы данных должны лежать рядом с этой страницей (UTF‑8 CSV и XLSX):
-  <ul>
-    <li><code>LE_Russia_subjects_forecast_2100_long.csv</code> — ОПЖ по полу</li>
-    <li><code>TFR_Russia_subjects_ML_GP_UCM_tidy.csv</code> — TFR (суммарный коэффициент рождаемости)</li>
-    <li><code>MIG_cyclic_tidy.csv</code> — миграция: «Территория, Пол, Год, Прибыл, Выбыл, Сальдо, Статус»</li>
-    <li><code>POP_wide_male_withMIG.xlsx</code>, <code>POP_wide_female_withMIG.xlsx</code>, <code>POP_wide_male_noMIG.xlsx</code>, <code>POP_wide_female_noMIG.xlsx</code> — возраст×год в «широком» виде (см. ниже)</li>
-  </ul>
-  Ожидаемый формат XLSX (каждый лист): первая строка — заголовки: <em>Возраст</em>, <em>Территория</em>, далее годы 2017…2100. Последующие строки: возраст (0…100+, допускается «100+»), наименование субъекта РФ и значения по годам.
+  Ситковский Арсений Михайлович, 2025
 </footer>
 
 <script>
 // =====================
-// Пути к файлам
+// Пути к файлам (расположены рядом с index.html)
 // =====================
 const files = {
   le:  'LE_Russia_subjects_forecast_2100_long.csv',
@@ -132,7 +125,7 @@ const normMap = (obj) => { const m = {}; Object.keys(obj).forEach(k=> m[k.toLowe
 function guessCol(map, aliases){ for(const a of aliases){ if(map[a]!==undefined) return map[a]; } return null; }
 function parseCSV(url){ return new Promise((resolve, reject)=>{ Papa.parse(url, { header:true, download:true, dynamicTyping:false, skipEmptyLines:true, complete: r=>resolve(r.data), error: reject }); }); }
 function toInt(x){ const v = parseInt(x,10); return Number.isFinite(v)? v: null; }
-function toNum(x){ const v = Number(String(x).replace(/\s+/g,'')); return Number.isFinite(v)? v: null; }
+function toNum(x){ if(x==null) return null; const s=String(x).replace(/\s+/g,'').replace(',','.'); const v = Number(s); return Number.isFinite(v)? v: null; }
 function trim(x){ return (x==null? '': String(x)).trim(); }
 function normSex(s){ s = trim(s).toLowerCase(); if(s.startsWith('муж')) return 'Мужчины'; if(s.startsWith('жен')) return 'Женщины'; if(s.includes('всего')||s.includes('итог')||s.includes('total')) return 'Всего'; return s || 'Всего'; }
 
@@ -213,13 +206,17 @@ async function fetchArrayBuffer(url){
 
 function findHeaderRowAsArray(rows){
   // ищем строку, где первый столбец похож на "Возраст" и далее есть >=2 годовых колонок
-  for(let i=0;i<Math.min(rows.length, 40);i++){
+  for(let i=0;i<Math.min(rows.length, 60);i++){
     const r = rows[i]; if(!r) continue;
     const c0 = String(r[0]||'').toLowerCase();
-    if(c0.includes('возраст')){
+    const c1 = String(r[1]||'').toLowerCase();
+    const looksAge = c0.includes('возраст');
+    const looksTerr= c1.includes('террит') || c1.includes('регион') || c1.includes('субъект');
+    if(looksAge){
       let yearCount=0;
       for(let j=2;j<r.length;j++){
-        const y = parseInt(String(r[j]).slice(0,4),10);
+        const cell = r[j]; if(cell==null) continue;
+        const y = parseInt(String(cell).match(/(19|20)\d{2}/)?.[0]||'',10);
         if(y>=1900 && y<=2100) yearCount++;
       }
       if(yearCount>=2) return i;
@@ -237,7 +234,8 @@ function parseWideSheetToTidy(rows, sexLabel, statusRule){
   const idxTerr= 1;
   const yearCols = [];
   for(let j=2;j<hdr.length;j++){
-    const y = parseInt(String(hdr[j]).slice(0,4),10);
+    const m = String(hdr[j]??'').match(/(19|20)\d{2}/);
+    const y = m? parseInt(m[0],10) : NaN;
     if(Number.isFinite(y)) yearCols.push({idx:j, year:y});
   }
   for(let i=hdrIdx+1;i<rows.length;i++){
@@ -260,6 +258,7 @@ function parseWideSheetToTidy(rows, sexLabel, statusRule){
 async function loadPopulationFromXLSX(cfg){
   const statusRule = (y)=> (y<=2025? 'наблюдение': 'прогноз');
   const tidy=[];
+  // Женщины
   if(cfg.female){
     const bufF = await fetchArrayBuffer(cfg.female);
     const wbF = XLSX.read(bufF, {type:'array'});
@@ -268,6 +267,7 @@ async function loadPopulationFromXLSX(cfg){
       tidy.push(...parseWideSheetToTidy(rows, 'Женщины', statusRule));
     });
   }
+  // Мужчины
   if(cfg.male){
     const bufM = await fetchArrayBuffer(cfg.male);
     const wbM = XLSX.read(bufM, {type:'array'});
@@ -307,20 +307,30 @@ async function loadAll(){
     state.pop_nom  = popNom;
 
     const terrs = new Set();
-    [...state.le, ...state.tfr, ...state.mig, ...state.pop_with, ...state.pop_nom].forEach(r=>terrs.add(r.Территория));
+    // если возрастные файлы ещё не подхватились, всё равно строим список по CSV
+    [...state.le, ...state.tfr, ...state.mig, ...state.pop_with, ...state.pop_nom]
+      .forEach(r=>{ if(r && r.Территория) terrs.add(r.Территория); });
     state.terrs = Array.from(terrs).sort((a,b)=> a.localeCompare(b));
 
+    // определим диапазон лет по наибольшему из источников
     const years = new Set();
-    state.pop_with.forEach(r=> years.add(r.Год));
-    state.pop_nom.forEach(r=> years.add(r.Год));
-    const yall = Array.from(years);
+    [...state.pop_with, ...state.pop_nom].forEach(r=> years.add(r.Год));
+    if(years.size===0){
+      // fallback — по миграции/LE/TFR
+      [...state.le, ...state.tfr, ...state.mig].forEach(r=> years.add(r.Год));
+    }
+    const yall = Array.from(years).filter(y=> Number.isFinite(y));
     if(yall.length){
       state.years.min = Math.min( ...yall, 2017 );
       state.years.max = Math.max( ...yall, 2100 );
     }
 
     initUI();
-    msg.textContent = '';
+    if(!state.terrs.length){
+      msg.innerHTML = '<span class="err">Не удалось определить список субъектов. Проверьте пути к файлам и их форматы.</span>';
+    } else {
+      msg.textContent = '';
+    }
   }catch(e){
     console.error(e);
     msg.innerHTML = `<span class="err">Ошибка загрузки: ${e.message||e}</span>`;
