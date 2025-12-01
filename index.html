@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Цифровая демографическая обсерватория: прогноз показателей субъектов РФ до 2100 г.</title>
 
-  <!-- Plotly для графиков, PapaParse для CSV, SheetJS для XLSX -->
+  <!-- Библиотеки: Plotly для графиков, PapaParse для CSV, SheetJS для XLSX -->
   <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -13,7 +13,7 @@
   <style>
     :root{
       --bg:#ffffff; --fg:#111; --muted:#666; --grid:#e7e7e7;
-      --accent:#1f77b4; --accent2:#d62728; --accent3:#2ca02c; --accent4:#9467bd; --accent5:#ff7f0e;
+      --accent:#1f77b4; --accent2:#d62728; --accent3:#2ca02c;
     }
     html,body{
       margin:0;padding:0;background:var(--bg);color:var(--fg);
@@ -24,26 +24,24 @@
     .sub{color:var(--muted);font-size:14px;max-width:1200px}
     main{max-width:1200px;margin:0 auto;padding:16px}
     .panel{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-    .card{border:1px solid var(--grid);border-radius:10px;padding:12px;background:#fafafa}
-    label{font-size:13px;color:var(--muted)}
+    .card{border:1px solid var(--grid);border-radius:10px;padding:12px;background:#fff}
+    label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
     select, input[type="range"], button{
-      width:100%;padding:8px;border:1px solid var(--grid);border-radius:8px;background:#fff;
-      font:inherit;
+      width:100%;padding:8px;border:1px solid var(--grid);border-radius:8px;background:#fafafa;font:inherit;
     }
-    button{cursor:pointer}
-    .row{display:grid;grid-template-columns:repeat(3, 1fr);gap:12px}
-    .row4{display:grid;grid-template-columns:repeat(4, 1fr);gap:12px}
-    .charts{display:grid;grid-template-columns:1fr;gap:16px}
+    .row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .row4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:8px}
+    .charts{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
     .small{font-size:12px;color:var(--muted)}
     .legend-pill{
-      display:inline-block;padding:2px 8px;border-radius:999px;
-      border:1px solid var(--grid);margin-right:6px;font-size:12px
+      display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--grid);
+      margin-right:6px;font-size:12px
     }
     .err{color:#b00020;font-size:13px}
     footer{
       max-width:1200px;margin:24px auto 32px auto;padding:0 16px;
-      color:var(--muted);font-size:12px;text-align:right
+      color:var(--muted);font-size:12px;text-align:left;
     }
     @media (max-width:900px){
       .panel{grid-template-columns:1fr}
@@ -69,14 +67,14 @@
 <main>
   <div class="panel">
     <div class="card">
-      <label for="territorySel">Субъект Российской Федерации</label>
+      <label for="territorySel">Субъект РФ</label>
       <select id="territorySel"></select>
     </div>
     <div class="card">
-      <label for="scenarioSel">Сценарий численности населения</label>
+      <label for="scenarioSel">Сценарий численности</label>
       <select id="scenarioSel">
         <option value="withMIG">С учётом миграции</option>
-        <option value="noMIG">Без учёта миграции</option>
+        <option value="noMIG">Без учёта миграции (миграция = 0)</option>
       </select>
     </div>
   </div>
@@ -85,22 +83,27 @@
     <div class="card">
       <label>Год для половозрастной пирамиды: <span id="yrLbl">2025</span></label>
       <input id="yearRange" type="range" min="2017" max="2100" step="1" value="2025"/>
-      <div class="small">Сдвиг ползунка меняет только год на пирамиде.</div>
+      <div class="small">Слайдер влияет только на пирамиду.</div>
     </div>
+
     <div class="card">
-      <label>Факт и прогноз</label>
+      <label>Факт / прогноз</label>
       <div class="small">
-        <span class="legend-pill">сплошная линия — факт</span>
-        <span class="legend-pill" style="border-style:dashed">штрих — прогноз</span>
+        <span class="legend-pill">— сплошная линия = факт</span>
+        <span class="legend-pill" style="border-style:dashed">— штрих = прогноз</span>
       </div>
-      <div class="small">Для миграции: столбцы — сальдо, линии — приток и отток.</div>
+      <div class="small">Для миграции: столбцы = сальдо, линии = приток и отток.</div>
     </div>
+
     <div class="card">
-      <label>Показываемые слои миграции</label>
-      <div><label><input type="checkbox" id="chkMigMale" checked> Мужчины</label></div>
-      <div><label><input type="checkbox" id="chkMigFem" checked> Женщины</label></div>
-      <div><label><input type="checkbox" id="chkMigTot" checked> Всего</label></div>
+      <label>Слои миграции</label>
+      <div class="small">
+        <label><input type="checkbox" id="chkMigMale" checked> Мужчины</label><br/>
+        <label><input type="checkbox" id="chkMigFem" checked> Женщины</label><br/>
+        <label><input type="checkbox" id="chkMigTot" checked> Всего</label>
+      </div>
     </div>
+
     <div class="card">
       <label>Экспорт графиков</label>
       <div class="row" style="grid-template-columns:1fr 1fr 1fr">
@@ -114,14 +117,14 @@
   <div class="charts">
     <div id="chartTFR" class="card" style="height:360px"></div>
     <div class="grid2">
-      <div id="chartLE"  class="card" style="height:380px"></div>
+      <div id="chartLE" class="card" style="height:380px"></div>
       <div id="chartPop" class="card" style="height:380px"></div>
     </div>
     <div id="chartMIG" class="card" style="height:420px"></div>
     <div id="chartPYR" class="card" style="height:480px"></div>
   </div>
 
-  <div id="msg" class="small"></div>
+  <div id="msg" class="small" style="margin-top:8px"></div>
 </main>
 
 <footer>
@@ -129,9 +132,9 @@
 </footer>
 
 <script>
-// ------------------------------------------------------------
-// Файлы данных (предполагается, что они лежат рядом с index.html)
-// ------------------------------------------------------------
+// =====================
+// Пути к файлам
+// =====================
 const files = {
   le:  'LE_Russia_subjects_forecast_2100_long.csv',
   tfr: 'TFR_Russia_subjects_ML_GP_UCM_tidy.csv',
@@ -149,88 +152,101 @@ const files = {
 };
 
 const state = {
-  le: [],        // ОПЖ
-  tfr: [],       // рождаемость
-  mig: [],       // миграция
-  pop_with: [],  // численность по возрасту с учётом миграции
-  pop_nom: [],   // численность по возрасту без миграции
-  terrs: [],
+  le: [],           // ОПЖ
+  tfr: [],          // СКР
+  mig: [],          // миграция
+  pop_with: [],     // age×sex×year с миграцией
+  pop_nom: [],      // age×sex×year без миграции
+  terrs: [],        // список территорий
   years: {min:2017, max:2100}
 };
 
-// ------------------------------------------------------------
+// =====================
 // Утилиты
-// ------------------------------------------------------------
+// =====================
 function trim(x){ return (x==null ? '' : String(x)).trim(); }
+
 function toInt(x){
-  const v = parseInt(String(x).replace(/\s+/g,''),10);
+  const v = parseInt(String(x).replace(/\s+/g,''), 10);
   return Number.isFinite(v) ? v : null;
 }
+
 function toNum(x){
+  if (x==null || x==='') return null;
   const s = String(x).replace(/\s+/g,'').replace(',', '.');
   const v = Number(s);
   return Number.isFinite(v) ? v : null;
 }
+
 function normSex(s){
   s = trim(s).toLowerCase();
-  if(!s) return '';
-  if(s.startsWith('муж') || s.includes('male')) return 'Мужчины';
-  if(s.startsWith('жен') || s.includes('fem'))  return 'Женщины';
-  if(s.includes('всего') || s.includes('итог') || s.includes('total')) return 'Всего';
-  return s;
+  if (s.startsWith('муж')) return 'Мужчины';
+  if (s.startsWith('жен')) return 'Женщины';
+  if (s.includes('всего') || s.includes('total') || s.includes('итог')) return 'Всего';
+  return s || 'Всего';
 }
-function normMapFromRow(obj){
+
+// map: нормализованное_имя_колонки → исходное_имя_колонки
+const normMap = (obj) => {
   const m = {};
-  Object.keys(obj).forEach(k=>{
-    m[k.toLowerCase().trim()] = k;
+  Object.keys(obj).forEach((k) => {
+    const norm = k.toLowerCase().replace(/\s+/g,' ').trim();
+    m[norm] = k;
   });
   return m;
-}
+};
+
+// ищем колонку, имя которой содержит один из шаблонов
 function guessCol(map, aliases){
-  for(const a of aliases){
-    if(map[a] !== undefined) return map[a];
+  const keys = Object.keys(map);
+  for (const rawAlias of aliases){
+    const alias = rawAlias.toLowerCase();
+    for (const k of keys){
+      if (k === alias || k.includes(alias)) return map[k];
+    }
   }
   return null;
 }
+
 function parseCSV(url){
-  return new Promise((resolve, reject)=>{
+  return new Promise((resolve, reject) => {
     Papa.parse(url, {
-      header:true,
-      download:true,
-      dynamicTyping:false,
-      skipEmptyLines:true,
+      header: true,
+      download: true,
+      dynamicTyping: false,
+      skipEmptyLines: true,
       complete: res => resolve(res.data || []),
       error: err => reject(err)
     });
   });
 }
 
-// ------------------------------------------------------------
+// =====================
 // Нормализация CSV: LE, TFR, MIG
-// ------------------------------------------------------------
+// =====================
 function normalizeLE(rows){
-  if(!rows || !rows.length) return [];
-  const map = normMapFromRow(rows[0]);
-  const colT = guessCol(map, ['территория','territory','регион','субъект']);
+  if (!rows || !rows.length) return [];
+  const map = normMap(rows[0]);
+
+  const colT = guessCol(map, ['территория','territory','регион','region','субъект','subject']);
   const colY = guessCol(map, ['год','year']);
   const colS = guessCol(map, ['пол','sex']);
-  const colV = guessCol(map, ['le','ожидаемая продолжительность жизни','опж','value']);
+  const colV = guessCol(map, ['le','ожидаемая продолжительность жизни','опж','life expectancy','value']);
   const colSt= guessCol(map, ['статус','status']);
 
+  if (!colT || !colY || !colV) return [];
+
   const out = [];
-  for(const r of rows){
-    const terr = trim(r[colT]);
-    if(!terr) continue;
-    const year = toInt(r[colY]);
-    if(!year) continue;
-    const sex  = normSex(r[colS]);
-    if(sex!=='Мужчины' && sex!=='Женщины') continue;
-    const val  = toNum(r[colV]);
-    if(val==null) continue;
-    const st   = colSt ? trim(r[colSt]) : (year<=2023 ? 'наблюдение' : 'прогноз');
-    out.push({Территория:terr, Пол:sex, Год:year, LE:val, Статус:st});
+  for (const r of rows){
+    const t = trim(r[colT]); if (!t) continue;
+    const y = toInt(r[colY]); if (!y) continue;
+    const s = normSex(colS ? r[colS] : 'Всего');
+    if (s!=='Мужчины' && s!=='Женщины') continue;
+    const v = toNum(r[colV]); if (v==null) continue;
+    const st = colSt ? trim(r[colSt]) : (y<=2023 ? 'наблюдение' : 'прогноз');
+    out.push({Территория:t, Пол:s, Год:y, LE:v, Статус:st});
   }
-  return out.sort((a,b)=>
+  return out.sort((a,b) =>
     a.Территория.localeCompare(b.Территория) ||
     a.Пол.localeCompare(b.Пол) ||
     a.Год - b.Год
@@ -238,34 +254,35 @@ function normalizeLE(rows){
 }
 
 function normalizeTFR(rows){
-  if(!rows || !rows.length) return [];
-  const map = normMapFromRow(rows[0]);
-  const colT = guessCol(map, ['территория','territory','регион','субъект']);
+  if (!rows || !rows.length) return [];
+  const map = normMap(rows[0]);
+
+  const colT = guessCol(map, ['территория','territory','регион','region','субъект','subject']);
   const colY = guessCol(map, ['год','year']);
-  const colV = guessCol(map, ['tfr','суммарный коэффициент рождаемости','скр','value']);
+  const colV = guessCol(map, ['tfr','суммарный коэффициент рождаемости','скр','fertility','value']);
   const colSt= guessCol(map, ['статус','status']);
 
+  if (!colT || !colY || !colV) return [];
+
   const out = [];
-  for(const r of rows){
-    const terr = trim(r[colT]);
-    if(!terr) continue;
-    const year = toInt(r[colY]);
-    if(!year) continue;
-    const val  = toNum(r[colV]);
-    if(val==null) continue;
-    const st   = colSt ? trim(r[colSt]) : (year<=2023 ? 'наблюдение' : 'прогноз');
-    out.push({Территория:terr, Год:year, TFR:val, Статус:st});
+  for (const r of rows){
+    const t = trim(r[colT]); if (!t) continue;
+    const y = toInt(r[colY]); if (!y) continue;
+    const v = toNum(r[colV]); if (v==null) continue;
+    const st = colSt ? trim(r[colSt]) : (y<=2023 ? 'наблюдение' : 'прогноз');
+    out.push({Территория:t, Год:y, TFR:v, Статус:st});
   }
-  return out.sort((a,b)=>
+  return out.sort((a,b) =>
     a.Территория.localeCompare(b.Территория) ||
     a.Год - b.Год
   );
 }
 
 function normalizeMIG(rows){
-  if(!rows || !rows.length) return [];
-  const map = normMapFromRow(rows[0]);
-  const colT = guessCol(map, ['территория','territory','регион','субъект']);
+  if (!rows || !rows.length) return [];
+  const map = normMap(rows[0]);
+
+  const colT = guessCol(map, ['территория','territory','регион','region','субъект','subject']);
   const colY = guessCol(map, ['год','year']);
   const colS = guessCol(map, ['пол','sex']);
   const colI = guessCol(map, ['прибыв','прибыл','inflow']);
@@ -273,131 +290,96 @@ function normalizeMIG(rows){
   const colN = guessCol(map, ['сальдо','saldo','balance']);
   const colSt= guessCol(map, ['статус','status']);
 
+  if (!colT || !colY || (!colN && !colI && !colO)) return [];
+
   const out = [];
-  for(const r of rows){
-    const terr = trim(r[colT]);
-    if(!terr) continue;
-    const year = toInt(r[colY]);
-    if(!year) continue;
-    const sex  = normSex(r[colS]);
-    if(!sex) continue;
+  for (const r of rows){
+    const t = trim(r[colT]); if (!t) continue;
+    const y = toInt(r[colY]); if (!y) continue;
+    const s = normSex(colS ? r[colS] : 'Всего');
+    if (!s) continue;
     const infl = colI ? toInt(r[colI]) : null;
     const outf = colO ? toInt(r[colO]) : null;
-    const sald = colN ? toInt(r[colN])
-                      : (infl!=null && outf!=null ? infl - outf : null);
-    const st   = colSt ? trim(r[colSt]) : (year<=2023 ? 'наблюдение' : 'прогноз');
-    out.push({
-      Территория:terr, Пол:sex, Год:year,
-      Прибыл: infl, Выбыл: outf, Сальдо: sald,
-      Статус: st
-    });
+    let sald  = colN ? toInt(r[colN]) : null;
+    if (sald==null && infl!=null && outf!=null) sald = infl - outf;
+    const st = colSt ? trim(r[colSt]) : (y<=2023 ? 'наблюдение' : 'прогноз');
+    out.push({Территория:t, Пол:s, Год:y,
+              Прибыл: infl, Выбыл: outf, Сальдо: sald, Статус: st});
   }
-  return out.sort((a,b)=>
+  return out.sort((a,b) =>
     a.Территория.localeCompare(b.Территория) ||
     a.Пол.localeCompare(b.Пол) ||
     a.Год - b.Год
   );
 }
 
-// ------------------------------------------------------------
-// Загрузка XLSX и преобразование «широкого» формата в tidy
-// Ожидаемая структура (как мы её формировали из Python):
-//   одна строка заголовка: Возраст | Территория | 2017 | 2018 | ... | 2100
-//   далее: возраст (0…100 или "100+"), субъект РФ, численность по годам
-// Дополнительно добавлена более общая эвристика на случай вариантов шапки.
-// ------------------------------------------------------------
+// =====================
+// XLSX: возраст × территория × годы (широкий формат)
+// Ожидаемый заголовок: Возраст | Территория | 2017 | 2018 | … | 2100
+// =====================
 async function fetchArrayBuffer(url){
   const res = await fetch(url);
-  if(!res.ok){
-    throw new Error(`HTTP ${res.status} при загрузке ${url}`);
-  }
+  if (!res.ok) throw new Error(`HTTP ${res.status} при загрузке ${url}`);
   return await res.arrayBuffer();
 }
 
-function findHeaderRow(rows){
-  // ищем строку, где где-то есть "возраст" и минимум две "годовые" колонки
-  for(let i=0; i<Math.min(rows.length, 50); i++){
-    const r = rows[i];
-    if(!r) continue;
-    let hasAge = false;
+function findHeaderRowAsArray(rows){
+  // Ищем строку, где первый столбец похож на «Возраст» и в остальных есть годы.
+  for (let i=0;i<Math.min(rows.length, 40);i++){
+    const r = rows[i]; if (!r) continue;
+    const c0 = String(r[0] || '').toLowerCase();
+    if (!c0.includes('возраст')) continue;
     let yearCount = 0;
-    for(let j=0; j<r.length; j++){
-      const cell = r[j];
-      if(cell == null) continue;
-      const s = String(cell).toLowerCase();
-      if(s.includes('возраст') || s.includes('age')) hasAge = true;
-      const y = toInt(String(cell).slice(0,4));
-      if(y && y>=1900 && y<=2100) yearCount++;
+    for (let j=2;j<r.length;j++){
+      const y = parseInt(String(r[j]).slice(0,4), 10);
+      if (y>=1900 && y<=2100) yearCount++;
     }
-    if(hasAge && yearCount>=2){
-      return i;
-    }
+    if (yearCount >= 2) return i;
   }
   return -1;
 }
 
 function parseWideSheetToTidy(rows, sexLabel, statusRule){
   const tidy = [];
-  const hdrIdx = findHeaderRow(rows);
-  if(hdrIdx < 0) return tidy;
+  const hdrIdx = findHeaderRowAsArray(rows);
+  if (hdrIdx < 0) return tidy;
 
   const hdr = rows[hdrIdx];
+  const idxAge  = 0;
+  const idxTerr = 1;
 
-  // находим индексы столбцов возраста и территории
-  let idxAge  = -1;
-  let idxTerr = -1;
-  for(let j=0; j<hdr.length; j++){
-    const s = String(hdr[j] || '').toLowerCase();
-    if(idxAge<0 && (s.includes('возраст') || s.includes('age'))){
-      idxAge = j; continue;
-    }
-    if(idxTerr<0 && (s.includes('террит') || s.includes('субъект') || s.includes('регион'))){
-      idxTerr = j; continue;
-    }
-  }
-  // если по какой-то причине не нашли — используем стандартное предположение
-  if(idxAge<0)  idxAge  = 0;
-  if(idxTerr<0) idxTerr = 1;
-
-  // собираем годовые колонки
   const yearCols = [];
-  for(let j=0; j<hdr.length; j++){
-    if(j === idxAge || j === idxTerr) continue;
-    const y = toInt(String(hdr[j]).slice(0,4));
-    if(y && y>=1900 && y<=2100){
-      yearCols.push({idx:j, year:y});
-    }
+  for (let j=2;j<hdr.length;j++){
+    const y = parseInt(String(hdr[j]).slice(0,4), 10);
+    if (Number.isFinite(y)) yearCols.push({idx:j, year:y});
   }
-  if(!yearCols.length) return tidy;
+  if (!yearCols.length) return tidy;
 
-  for(let i = hdrIdx + 1; i < rows.length; i++){
-    const r = rows[i];
-    if(!r) continue;
-    const terr = trim(r[idxTerr]);
-    if(!terr) continue;
-    let ageTxt = trim(r[idxAge]);
-    if(!ageTxt) continue;
-    if(ageTxt.includes('и более')) ageTxt = '100+';
-    const age = (ageTxt === '100+' ? 100 : toInt(ageTxt));
-    if(age == null) continue;
+  for (let i=hdrIdx+1;i<rows.length;i++){
+    const r = rows[i]; if (!r) continue;
+    const terr = trim(r[idxTerr]); if (!terr) continue;
+    let ageTxt = trim(r[idxAge]); if (!ageTxt) continue;
 
-    for(const yc of yearCols){
-      const raw = r[yc.idx];
-      const val = toNum(raw);
-      if(val == null) continue;
+    if (ageTxt.includes('и более')) ageTxt = '100+';
+    const age = (ageTxt === '100+') ? 100 : toInt(ageTxt);
+    if (age==null) continue;
+
+    for (const yc of yearCols){
+      const v = toNum(r[yc.idx]);
+      if (v==null) continue;
       const st = statusRule(yc.year);
       tidy.push({
         Территория: terr,
         Пол: sexLabel,
         Год: yc.year,
         Возраст: age,
-        Численность: val,
+        Численность: v,
         Статус: st
       });
     }
   }
 
-  return tidy.sort((a,b)=>
+  return tidy.sort((a,b) =>
     a.Территория.localeCompare(b.Территория) ||
     a.Пол.localeCompare(b.Пол) ||
     a.Год - b.Год ||
@@ -406,27 +388,29 @@ function parseWideSheetToTidy(rows, sexLabel, statusRule){
 }
 
 async function loadPopulationFromXLSX(cfg){
-  const statusRule = (y)=> (y <= 2025 ? 'наблюдение' : 'прогноз');
+  // Факт до 2025 включительно, далее прогноз — условно.
+  const statusRule = (y) => (y <= 2025 ? 'наблюдение' : 'прогноз');
   const tidy = [];
 
-  if(cfg.female){
+  if (cfg.female){
     const bufF = await fetchArrayBuffer(cfg.female);
     const wbF  = XLSX.read(bufF, {type:'array'});
-    wbF.SheetNames.forEach(sh=>{
+    wbF.SheetNames.forEach((sh) => {
       const rows = XLSX.utils.sheet_to_json(wbF.Sheets[sh], {header:1, raw:true});
       tidy.push(...parseWideSheetToTidy(rows, 'Женщины', statusRule));
     });
   }
-  if(cfg.male){
+
+  if (cfg.male){
     const bufM = await fetchArrayBuffer(cfg.male);
     const wbM  = XLSX.read(bufM, {type:'array'});
-    wbM.SheetNames.forEach(sh=>{
+    wbM.SheetNames.forEach((sh) => {
       const rows = XLSX.utils.sheet_to_json(wbM.Sheets[sh], {header:1, raw:true});
       tidy.push(...parseWideSheetToTidy(rows, 'Мужчины', statusRule));
     });
   }
 
-  return tidy.sort((a,b)=>
+  return tidy.sort((a,b) =>
     a.Территория.localeCompare(b.Территория) ||
     a.Пол.localeCompare(b.Пол) ||
     a.Год - b.Год ||
@@ -434,9 +418,9 @@ async function loadPopulationFromXLSX(cfg){
   );
 }
 
-// ------------------------------------------------------------
+// =====================
 // Загрузка всех источников
-// ------------------------------------------------------------
+// =====================
 function splitFactForecast(rows){
   const fact = rows.filter(r => (r.Статус || '').toLowerCase().startsWith('наб'));
   const fcst = rows.filter(r => (r.Статус || '').toLowerCase().startsWith('прог'));
@@ -453,6 +437,7 @@ async function loadAll(){
       parseCSV(files.tfr),
       parseCSV(files.mig)
     ]);
+
     state.le  = normalizeLE(leR);
     state.tfr = normalizeTFR(tfrR);
     state.mig = normalizeMIG(migR);
@@ -461,79 +446,83 @@ async function loadAll(){
       loadPopulationFromXLSX(files.pop_xlsx.withMIG),
       loadPopulationFromXLSX(files.pop_xlsx.noMIG)
     ]);
+
     state.pop_with = popWith;
     state.pop_nom  = popNom;
 
+    // Список территорий
     const terrs = new Set();
-    [...state.le, ...state.tfr, ...state.mig, ...state.pop_with, ...state.pop_nom]
-      .forEach(r => terrs.add(r.Территория));
-    state.terrs = Array.from(terrs).sort((a,b)=> a.localeCompare(b));
+    [...state.le, ...state.tfr, ...state.mig,
+     ...state.pop_with, ...state.pop_nom].forEach(r => {
+       if (r && r.Территория) terrs.add(r.Территория);
+     });
+    state.terrs = Array.from(terrs).sort((a,b)=>a.localeCompare(b));
 
+    // Диапазон лет из возрастной численности (если есть)
     const years = new Set();
     state.pop_with.forEach(r => years.add(r.Год));
     state.pop_nom.forEach(r => years.add(r.Год));
-    const yall = Array.from(years);
-    if(yall.length){
-      state.years.min = Math.min(...yall, 2017);
-      state.years.max = Math.max(...yall, 2100);
+    const yAll = Array.from(years).filter(y => typeof y === 'number' && !isNaN(y));
+    if (yAll.length){
+      state.years.min = Math.min(...yAll, 2017);
+      state.years.max = Math.max(...yAll, 2100);
     }
-
-    if(!state.terrs.length){
-      msg.innerHTML =
-        '<span class="err">Не удалось получить список субъектов из данных. ' +
-        'Проверьте, что CSV и XLSX действительно лежат рядом с index.html и открываются по прямым ссылкам.</span>';
-      console.warn('LE rows:', state.le.length, 'TFR rows:', state.tfr.length,
-                   'MIG rows:', state.mig.length,
-                   'POP_with rows:', state.pop_with.length,
-                   'POP_nom rows:', state.pop_nom.length);
-      return;
-    }
-
-    msg.textContent =
-      `Загружено: LE ${state.le.length} записей, TFR ${state.tfr.length}, ` +
-      `миграция ${state.mig.length}, возрастная численность с миграцией ${state.pop_with.length}, ` +
-      `без миграции ${state.pop_nom.length}.`;
 
     initUI();
+
+    msg.textContent =
+      `Загружено: LE ${state.le.length} записей, ` +
+      `TFR ${state.tfr.length}, ` +
+      `миграция ${state.mig.length}, ` +
+      `возрастная численность с миграцией ${state.pop_with.length}, ` +
+      `без миграции ${state.pop_nom.length}.`;
+
   }catch(e){
     console.error(e);
-    document.getElementById('msg').innerHTML =
-      `<span class="err">Ошибка загрузки данных: ${e.message || e}</span>`;
+    msg.innerHTML = `<span class="err">Ошибка загрузки: ${e.message || e}</span>`;
   }
 }
 
-// ------------------------------------------------------------
+// =====================
 // UI и отрисовка
-// ------------------------------------------------------------
+// =====================
 function initUI(){
+  const msg  = document.getElementById('msg');
   const selT = document.getElementById('territorySel');
-  selT.innerHTML = state.terrs.map(t => `<option value="${t}">${t}</option>`).join('');
-  if(state.terrs.length){
-    selT.value = state.terrs[0];
+
+  if (!state.terrs.length){
+    msg.innerHTML = '<span class="err">Не удалось сформировать список субъектов РФ. Проверьте имена и формат файлов данных.</span>';
+    selT.innerHTML = '';
+    return;
   }
 
+  selT.innerHTML = state.terrs.map(t => `<option value="${t}">${t}</option>`).join('');
+  selT.value = state.terrs[0];
+
   const yRange = document.getElementById('yearRange');
-  yRange.min   = state.years.min;
-  yRange.max   = state.years.max;
-  yRange.value = Math.min(2025, state.years.max);
-  document.getElementById('yrLbl').textContent = yRange.value;
+  yRange.min = state.years.min;
+  yRange.max = state.years.max;
+  const defaultYear = Math.min(2025, state.years.max);
+  yRange.value = defaultYear;
+  document.getElementById('yrLbl').textContent = defaultYear;
 
   selT.addEventListener('change', renderAll);
   document.getElementById('scenarioSel').addEventListener('change', renderAll);
-  yRange.addEventListener('input', e=>{
+  yRange.addEventListener('input', (e) => {
     document.getElementById('yrLbl').textContent = e.target.value;
     renderPyramid();
   });
+
   document.getElementById('chkMigMale').addEventListener('change', renderMigration);
   document.getElementById('chkMigFem').addEventListener('change', renderMigration);
   document.getElementById('chkMigTot').addEventListener('change', renderMigration);
 
   document.getElementById('btnPNG1').onclick =
-    ()=> Plotly.downloadImage('chartTFR', {format:'png', filename:'TFR'});
+    () => Plotly.downloadImage('chartTFR', {format:'png', filename:'TFR'});
   document.getElementById('btnPNG2').onclick =
-    ()=> Plotly.downloadImage('chartLE',  {format:'png', filename:'LE'});
+    () => Plotly.downloadImage('chartLE',  {format:'png', filename:'LE'});
   document.getElementById('btnPNG3').onclick =
-    ()=> Plotly.downloadImage('chartMIG', {format:'png', filename:'Migration'});
+    () => Plotly.downloadImage('chartMIG', {format:'png', filename:'Migration'});
 
   renderAll();
 }
@@ -553,30 +542,30 @@ function renderTFR(){
   const {fact, fcst} = splitFactForecast(rows);
   const traces = [];
 
-  if(fact.length){
+  if (fact.length){
     traces.push({
-      x: fact.map(d=>d.Год),
-      y: fact.map(d=>d.TFR),
-      mode:'lines',
-      line:{color:'#1f77b4', width:2},
-      name:'TFR (факт)'
+      x: fact.map(d => d.Год),
+      y: fact.map(d => d.TFR),
+      mode: 'lines',
+      line: {color: '#1f77b4', width: 2},
+      name: 'TFR (факт)'
     });
   }
-  if(fcst.length){
+  if (fcst.length){
     traces.push({
-      x: fcst.map(d=>d.Год),
-      y: fcst.map(d=>d.TFR),
-      mode:'lines',
-      line:{color:'#1f77b4', width:2, dash:'dash'},
-      name:'TFR (прогноз)'
+      x: fcst.map(d => d.Год),
+      y: fcst.map(d => d.TFR),
+      mode: 'lines',
+      line: {color: '#1f77b4', width: 2, dash: 'dash'},
+      name: 'TFR (прогноз)'
     });
   }
 
   const layout = {
-    margin:{l:60,r:20,t:30,b:40},
-    yaxis:{title:'детей на женщину', zeroline:false},
-    xaxis:{title:'Год'},
-    legend:{orientation:'h'}
+    margin: {l:60, r:20, t:30, b:40},
+    yaxis: {title: 'детей на женщину', zeroline:false},
+    xaxis: {title: 'Год'},
+    legend: {orientation:'h'}
   };
   Plotly.newPlot('chartTFR', traces, layout, {responsive:true, displayModeBar:false});
 }
@@ -585,96 +574,94 @@ function renderTFR(){
 function renderLE(){
   const terr = document.getElementById('territorySel').value;
   const rows = state.le.filter(r => r.Территория === terr);
-
   const males = rows.filter(r => r.Пол === 'Мужчины');
   const fems  = rows.filter(r => r.Пол === 'Женщины');
-
-  const {fact:mf, fcst:mc} = splitFactForecast(males);
-  const {fact:ff, fcst:fc} = splitFactForecast(fems);
-
+  const {fact: mf, fcst: mc} = splitFactForecast(males);
+  const {fact: ff, fcst: fc} = splitFactForecast(fems);
   const traces = [];
-  if(mf.length){
-    traces.push({
-      x: mf.map(d=>d.Год), y: mf.map(d=>d.LE),
-      mode:'lines', line:{color:'#1f77b4'},
-      name:'ОПЖ мужчины (факт)'
-    });
-  }
-  if(mc.length){
-    traces.push({
-      x: mc.map(d=>d.Год), y: mc.map(d=>d.LE),
-      mode:'lines', line:{color:'#1f77b4', dash:'dash'},
-      name:'ОПЖ мужчины (прогноз)'
-    });
-  }
-  if(ff.length){
-    traces.push({
-      x: ff.map(d=>d.Год), y: ff.map(d=>d.LE),
-      mode:'lines', line:{color:'#d62728'},
-      name:'ОПЖ женщины (факт)'
-    });
-  }
-  if(fc.length){
-    traces.push({
-      x: fc.map(d=>d.Год), y: fc.map(d=>d.LE),
-      mode:'lines', line:{color:'#d62728', dash:'dash'},
-      name:'ОПЖ женщины (прогноз)'
-    });
-  }
+
+  if (mf.length) traces.push({
+    x: mf.map(d => d.Год),
+    y: mf.map(d => d.LE),
+    mode: 'lines',
+    line: {color:'#1f77b4'},
+    name: 'ОПЖ мужчины (факт)'
+  });
+  if (mc.length) traces.push({
+    x: mc.map(d => d.Год),
+    y: mc.map(d => d.LE),
+    mode: 'lines',
+    line: {color:'#1f77b4', dash:'dash'},
+    name: 'ОПЖ мужчины (прогноз)'
+  });
+  if (ff.length) traces.push({
+    x: ff.map(d => d.Год),
+    y: ff.map(d => d.LE),
+    mode: 'lines',
+    line: {color:'#d62728'},
+    name: 'ОПЖ женщины (факт)'
+  });
+  if (fc.length) traces.push({
+    x: fc.map(d => d.Год),
+    y: fc.map(d => d.LE),
+    mode: 'lines',
+    line: {color:'#d62728', dash:'dash'},
+    name: 'ОПЖ женщины (прогноз)'
+  });
 
   const layout = {
-    margin:{l:60,r:20,t:30,b:40},
-    yaxis:{title:'лет', zeroline:false},
-    xaxis:{title:'Год'},
-    legend:{orientation:'h'}
+    margin: {l:60, r:20, t:30, b:40},
+    yaxis: {title:'лет', zeroline:false},
+    xaxis: {title:'Год'},
+    legend: {orientation:'h'}
   };
   Plotly.newPlot('chartLE', traces, layout, {responsive:true, displayModeBar:false});
 }
 
-// ----- Итоговая численность населения -----
+// ----- Общая численность населения -----
 function renderPopTotal(){
   const terr = document.getElementById('territorySel').value;
   const scen = document.getElementById('scenarioSel').value;
   const src  = (scen === 'withMIG' ? state.pop_with : state.pop_nom)
-               .filter(r => r.Территория === terr);
+                 .filter(r => r.Территория === terr);
 
-  const group = new Map();
-  for(const r of src){
-    const key = r.Год;
-    group.set(key, (group.get(key) || 0) + (r.Численность || 0));
+  if (!src.length){
+    Plotly.purge('chartPop');
+    return;
   }
 
-  const years = Array.from(group.keys()).sort((a,b)=>a-b);
-  const factYears = new Set(
-    src.filter(r => (r.Статус || '').toLowerCase().startsWith('наб'))
-       .map(r => r.Год)
-  );
+  const totals = new Map();
+  const factYears = new Set();
 
+  for (const r of src){
+    const y = r.Год;
+    const v = r.Численность || 0;
+    totals.set(y, (totals.get(y) || 0) + v);
+    if ((r.Статус || '').toLowerCase().startsWith('наб')) factYears.add(y);
+  }
+
+  const years = Array.from(totals.keys()).sort((a,b)=>a-b);
   const xFact = years.filter(y => factYears.has(y));
-  const yFact = xFact.map(y => group.get(y));
+  const yFact = xFact.map(y => totals.get(y));
   const xFcst = years.filter(y => !factYears.has(y));
-  const yFcst = xFcst.map(y => group.get(y));
+  const yFcst = xFcst.map(y => totals.get(y));
 
   const traces = [];
-  if(xFact.length){
-    traces.push({
-      x:xFact, y:yFact,
-      mode:'lines',
-      line:{color:'#2ca02c'},
-      name:'Численность (факт)'
-    });
-  }
-  if(xFcst.length){
-    traces.push({
-      x:xFcst, y:yFcst,
-      mode:'lines',
-      line:{color:'#2ca02c', dash:'dash'},
-      name:'Численность (прогноз)'
-    });
-  }
+  if (xFact.length) traces.push({
+    x: xFact, y: yFact,
+    mode: 'lines',
+    line: {color:'#2ca02c'},
+    name: 'Численность (факт)'
+  });
+  if (xFcst.length) traces.push({
+    x: xFcst, y: yFcst,
+    mode: 'lines',
+    line: {color:'#2ca02c', dash:'dash'},
+    name: 'Численность (прогноз)'
+  });
 
   const layout = {
-    margin:{l:70,r:20,t:30,b:40},
+    margin:{l:70, r:20, t:30, b:40},
     yaxis:{title:'человек', zeroline:false, separatethousands:true},
     xaxis:{title:'Год'},
     legend:{orientation:'h'}
@@ -682,87 +669,89 @@ function renderPopTotal(){
   Plotly.newPlot('chartPop', traces, layout, {responsive:true, displayModeBar:false});
 }
 
-// ----- Миграция -----
+// ----- Миграция: сальдо (столбцы) + приток/отток (линии) -----
 function renderMigration(){
-  const terr  = document.getElementById('territorySel').value;
+  const terr = document.getElementById('territorySel').value;
   const showM = document.getElementById('chkMigMale').checked;
   const showF = document.getElementById('chkMigFem').checked;
   const showT = document.getElementById('chkMigTot').checked;
 
   const rows = state.mig.filter(r => r.Территория === terr);
+  if (!rows.length){
+    Plotly.purge('chartMIG');
+    return;
+  }
+
   const sexes = [];
-  if(showM) sexes.push('Мужчины');
-  if(showF) sexes.push('Женщины');
-  if(showT) sexes.push('Всего');
+  if (showM) sexes.push('Мужчины');
+  if (showF) sexes.push('Женщины');
+  if (showT) sexes.push('Всего');
 
-  const colors = {
-    'Мужчины':'#1f77b4',
-    'Женщины':'#d62728',
-    'Всего':'#7f7f7f'
-  };
-
+  const colors = { 'Мужчины':'#1f77b4', 'Женщины':'#d62728', 'Всего':'#7f7f7f' };
   const traces = [];
 
-  for(const sex of sexes){
+  // Сальдо (столбцы)
+  for (const sex of sexes){
     const rs = rows.filter(r => r.Пол === sex);
-    if(!rs.length) continue;
+    if (!rs.length) continue;
     const {fact, fcst} = splitFactForecast(rs);
 
-    if(fact.length){
+    if (fact.length){
       traces.push({
-        x:fact.map(d=>d.Год),
-        y:fact.map(d=>d.Сальдо || 0),
-        type:'bar',
-        marker:{color:colors[sex], opacity:0.45},
-        name:`Сальдо ${sex} (факт)`
+        x: fact.map(d => d.Год),
+        y: fact.map(d => d.Сальдо || 0),
+        type: 'bar',
+        marker: {color: colors[sex], opacity: 0.45},
+        name: `Сальдо ${sex} (факт)`
       });
     }
-    if(fcst.length){
+    if (fcst.length){
       traces.push({
-        x:fcst.map(d=>d.Год),
-        y:fcst.map(d=>d.Сальдо || 0),
-        type:'bar',
-        marker:{color:colors[sex], opacity:0.25},
-        name:`Сальдо ${sex} (прогноз)`
+        x: fcst.map(d => d.Год),
+        y: fcst.map(d => d.Сальдо || 0),
+        type: 'bar',
+        marker: {color: colors[sex], opacity: 0.25},
+        name: `Сальдо ${sex} (прогноз)`
       });
     }
   }
 
-  function pushLine(sex, kind){
+  // Приток / отток (линии)
+  function addLines(sex, kind){
     const rs = rows.filter(r => r.Пол === sex);
-    if(!rs.length) return;
+    if (!rs.length) return;
     const {fact, fcst} = splitFactForecast(rs);
     const col = colors[sex];
-    const label = (kind === 'I' ? 'Прибыл' : 'Выбыл');
+    const lab = (kind === 'I') ? 'Прибыл' : 'Выбыл';
 
-    if(fact.length){
+    if (fact.length){
       traces.push({
-        x: fact.map(d=>d.Год),
-        y: fact.map(d=> kind === 'I' ? (d.Прибыл || 0) : (d.Выбыл || 0)),
-        mode:'lines',
-        line:{color:col, width:2},
-        name:`${label} ${sex} (факт)`
+        x: fact.map(d => d.Год),
+        y: fact.map(d => (kind==='I' ? (d.Прибыл || 0) : (d.Выбыл || 0))),
+        mode: 'lines',
+        line: {color: col, width:2},
+        name: `${lab} ${sex} (факт)`
       });
     }
-    if(fcst.length){
+    if (fcst.length){
       traces.push({
-        x: fcst.map(d=>d.Год),
-        y: fcst.map(d=> kind === 'I' ? (d.Прибыл || 0) : (d.Выбыл || 0)),
-        mode:'lines',
-        line:{color:col, width:2, dash:'dash'},
-        name:`${label} ${sex} (прогноз)`
+        x: fcst.map(d => d.Год),
+        y: fcst.map(d => (kind==='I' ? (d.Прибыл || 0) : (d.Выбыл || 0))),
+        mode: 'lines',
+        line: {color: col, width:2, dash:'dash'},
+        name: `${lab} ${sex} (прогноз)`
       });
     }
   }
 
-  for(const sex of sexes){
-    pushLine(sex, 'I');
-    pushLine(sex, 'O');
+  for (const sex of sexes){
+    addLines(sex, 'I');
+    addLines(sex, 'O');
   }
 
   const layout = {
     barmode:'overlay',
-    margin:{l:70,r:20,t:30,b:40},
+    margin:{l:70, r:20, t:30, b:40},
     yaxis:{title:'человек', separatethousands:true},
     xaxis:{title:'Год'},
     legend:{orientation:'h'}
@@ -777,46 +766,50 @@ function renderPyramid(){
   const year = parseInt(document.getElementById('yearRange').value, 10);
 
   const src = (scen === 'withMIG' ? state.pop_with : state.pop_nom)
-              .filter(r => r.Территория === terr && r.Год === year);
-  if(!src.length){
+                .filter(r => r.Территория === terr && r.Год === year);
+  if (!src.length){
     Plotly.purge('chartPYR');
     return;
   }
 
-  const male   = [];
+  const male = [];
   const female = [];
-  const ages   = [];
+  const ages = [];
 
-  for(let a=0; a<=100; a++){
-    const m = src.find(r => r.Пол === 'Мужчины' && r.Возраст === a);
-    const f = src.find(r => r.Пол === 'Женщины' && r.Возраст === a);
+  for (let a=0;a<=100;a++){
+    const m = src.find(r => r.Пол==='Мужчины' && r.Возраст===a);
+    const f = src.find(r => r.Пол==='Женщины' && r.Возраст===a);
     male.push(m ? -Math.round(m.Численность || 0) : 0);
-    female.push(f ? Math.round(f.Численность || 0) : 0);
-    ages.push(a === 100 ? '100+' : String(a));
+    female.push(f ?  Math.round(f.Численность || 0) : 0);
+    ages.push(a===100 ? '100+' : String(a));
   }
 
   const traces = [
     {
-      type:'bar',
-      x:male, y:ages, orientation:'h',
-      name:'Мужчины',
-      marker:{color:'#1f77b4'},
-      hovertemplate:'%{y}: %{text} чел.<extra></extra>',
-      text:male.map(v => Math.abs(v).toLocaleString('ru-RU'))
+      type: 'bar',
+      x: male,
+      y: ages,
+      orientation: 'h',
+      name: 'Мужчины',
+      marker: {color:'#1f77b4'},
+      hovertemplate: '%{y}: %{text} чел.<extra></extra>',
+      text: male.map(v => Math.abs(v).toLocaleString('ru-RU'))
     },
     {
-      type:'bar',
-      x:female, y:ages, orientation:'h',
-      name:'Женщины',
-      marker:{color:'#d62728'},
-      hovertemplate:'%{y}: %{text} чел.<extra></extra>',
-      text:female.map(v => v.toLocaleString('ru-RU'))
+      type: 'bar',
+      x: female,
+      y: ages,
+      orientation: 'h',
+      name: 'Женщины',
+      marker: {color:'#d62728'},
+      hovertemplate: '%{y}: %{text} чел.<extra></extra>',
+      text: female.map(v => v.toLocaleString('ru-RU'))
     }
   ];
 
   const layout = {
     barmode:'relative',
-    margin:{l:60,r:20,t:30,b:40},
+    margin:{l:60, r:20, t:30, b:40},
     xaxis:{title:'человек', tickformat:",.0", zeroline:true},
     yaxis:{title:'возраст', autorange:'reversed'},
     legend:{orientation:'h'},
