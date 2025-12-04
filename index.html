@@ -387,7 +387,8 @@ async function loadPopulationFromXLSX(cfg){
     const wbF = XLSX.read(bufF, {type:'array'});
     wbF.SheetNames.forEach(sh=>{
       const rows = XLSX.utils.sheet_to_json(wbF.Sheets[sh], {header:1, raw:true});
-      tidy.push(...parseWideSheetToTidy(rows, 'Женщины', statusRule));
+      const parsed = parseWideSheetToTidy(rows, 'Женщины', statusRule);
+      for(const rec of parsed) tidy.push(rec);
     });
   }
   if(cfg.male){
@@ -395,7 +396,8 @@ async function loadPopulationFromXLSX(cfg){
     const wbM = XLSX.read(bufM, {type:'array'});
     wbM.SheetNames.forEach(sh=>{
       const rows = XLSX.utils.sheet_to_json(wbM.Sheets[sh], {header:1, raw:true});
-      tidy.push(...parseWideSheetToTidy(rows, 'Мужчины', statusRule));
+      const parsed = parseWideSheetToTidy(rows, 'Мужчины', statusRule);
+      for(const rec of parsed) tidy.push(rec);
     });
   }
   tidy.sort((a,b)=>
