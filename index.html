@@ -132,6 +132,10 @@ const state = {
 
 // ------------------- Утилиты -------------------
 function trim(x){ return (x==null? '' : String(x)).trim(); }
+function cleanTerritory(x){
+  // убираем случайные номера/точки перед названием
+  return trim(x).replace(/^[0-9.,\-]+\)?\s*/,'');
+}
 function toInt(x){
   const v = parseInt(String(x).replace(/\s+/g,''),10);
   return Number.isFinite(v)? v : null;
@@ -221,7 +225,7 @@ function normalizeLE(rows){
 
   const out=[];
   for(const r of rows){
-    const t = trim(r[colT]); if(!t) continue;
+    const t = cleanTerritory(r[colT]); if(!t) continue;
     const y = toInt(r[colY]); if(!y) continue;
     const sx = normSex(r[colS]); if(sx!=='Мужчины' && sx!=='Женщины') continue;
     const v  = toNum(r[colLE]); if(v==null) continue;
@@ -263,7 +267,7 @@ function normalizeTFR(rows){
 
   const out=[];
   for(const r of rows){
-    const t = trim(r[colT]); if(!t) continue;
+    const t = cleanTerritory(r[colT]); if(!t) continue;
     const y = toInt(r[colY]); if(!y) continue;
     const v = toNum(r[colV]); if(v==null) continue;
     const st = colSt? trim(r[colSt]) : (y<=2023? 'наблюдение':'прогноз');
@@ -292,7 +296,7 @@ function normalizeMIG(rows){
 
   const out=[];
   for(const r of rows){
-    const t = trim(r[colT]); if(!t) continue;
+    const t = cleanTerritory(r[colT]); if(!t) continue;
     const y = toInt(r[colY]); if(!y) continue;
     const s = normSex(r[colS]); if(!s) continue;
     const infl = colI? toInt(r[colI]) : null;
@@ -307,79 +311,60 @@ function normalizeMIG(rows){
 }
 
 // ------------------- Парсинг XLSX: возраст × год -------------------
-function detectHeaderRow(rows){
-  // ищем строку, где есть хотя бы два "годовых" заголовка (2017…2100)
-  for(let i=0;i<Math.min(rows.length, 60);i++){
-    const r = rows[i]; if(!r) continue;
-    let yearCount = 0;
-    for(let j=0;j<r.length;j++){
-      const y = toInt(String(r[j]).slice(0,4));
-      if(y && y>=1900 && y<=2100) yearCount++;
-    }
-    if(yearCount>=2) return i;
-  }
-  return -1;
-}
-
 function parseWideSheetToTidy(rows, sexLabel, statusRule){
-  const tidy=[];
-  const hdrIdx = detectHeaderRow(rows);
-  if(hdrIdx<0) return tidy;
+  // Формат файлов: первая строка — заголовки "Территория | Год | 0 | 1 | ... 100+",
+  // далее по нескольку строк на один регион (территория указывается только в первой строке блока).
+  if(!rows || !rows.length) return [];
+
+  let hdrIdx = -1;
+  let idxTerr = null, idxYear = null;
+
+  for(let i=0;i<Math.min(rows.length,20);i++){
+    const r = rows[i] || [];
+    r.forEach((cell, j)=>{
+      const s = trim(cell).toLowerCase();
+      if(s==='территория' || s==='territory') idxTerr = j;
+      if(s==='год' || s==='year') idxYear = j;
+    });
+    if(idxTerr!=null && idxYear!=null){ hdrIdx = i; break; }
+  }
+  if(hdrIdx<0 || idxTerr==null || idxYear==null) return [];
+
   const hdr = rows[hdrIdx] || [];
-  const yearCols = [];
+  const ageCols = [];
   for(let j=0;j<hdr.length;j++){
-    const y = toInt(String(hdr[j]).slice(0,4));
-    if(y && y>=1900 && y<=2100) yearCols.push({idx:j, year:y});
+    if(j===idxTerr || j===idxYear) continue;
+    const s = trim(hdr[j]);
+    if(/^\d+$/.test(s) || s==='100+' || s.includes('и более')) ageCols.push(j);
   }
-  if(!yearCols.length) return tidy;
+  if(!ageCols.length) return [];
 
-  // определяем кандидатов на колонки возраста и территории
-  const candidateIdx = [];
-  for(let j=0;j<hdr.length;j++){
-    if(yearCols.some(yc => yc.idx===j)) continue;
-    candidateIdx.push(j);
-  }
-
-  let idxAge = null, idxTerr = null;
-
-  for(const j of candidateIdx){
-    let cnt=0, good=0, nonNum=0;
-    for(let i=hdrIdx+1;i<rows.length && i<hdrIdx+1+80;i++){
-      const val = rows[i] ? rows[i][j] : null;
-      if(val==null || val==='') continue;
-      cnt++;
-      const s = String(val).trim();
-      const v = toInt(s);
-      if(s==='100+' || (v!=null && v>=0 && v<=110)) good++;
-      if(/[А-Яа-яA-Za-z]/.test(s) && v==null && s!=='100+') nonNum++;
-    }
-    if(cnt>10 && good/cnt>0.8 && idxAge===null){ idxAge = j; continue; }
-    if(cnt>10 && nonNum/cnt>0.8 && idxTerr===null){ idxTerr = j; continue; }
-  }
-
-  // если не распознали явно, по умолчанию: первый столбец — возраст, второй — территория
-  if(idxAge==null) idxAge = 0;
-  if(idxTerr==null) idxTerr = 1;
+  const tidy=[];
+  let lastTerr='';
 
   for(let i=hdrIdx+1;i<rows.length;i++){
-    const r = rows[i]; if(!r) continue;
-    const terr = trim(r[idxTerr]); if(!terr) continue;
-    let ageTxt = trim(r[idxAge]); if(!ageTxt) continue;
-    if(ageTxt.includes('и более') || ageTxt==='100+') ageTxt = '100+';
-    const age = (ageTxt==='100+') ? 100 : toInt(ageTxt);
-    if(age==null) continue;
-    for(const yc of yearCols){
-      const raw = r[yc.idx];
-      const v = toNum(raw);
+    const r = rows[i] || [];
+    const terrRaw = r[idxTerr];
+    const terr = terrRaw ? cleanTerritory(terrRaw) : lastTerr;
+    if(!terr) continue;
+    lastTerr = terr;
+
+    const year = toInt(r[idxYear]);
+    if(year==null) continue;
+
+    for(const j of ageCols){
+      const ageTxt = trim(hdr[j]);
+      const age = ageTxt==='100+' ? 100 : toInt(ageTxt);
+      if(age==null) continue;
+      const v = toNum(r[j]);
       if(v==null) continue;
-      const st = statusRule(yc.year);
       tidy.push({
         Территория: terr,
         Пол: sexLabel,
-        Год: yc.year,
+        Год: year,
         Возраст: age,
         Численность: v,
-        Статус: st
+        Статус: statusRule(year)
       });
     }
   }
