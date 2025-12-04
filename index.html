@@ -14,28 +14,40 @@
     }
     html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif}
     header{padding:16px 20px;border-bottom:1px solid var(--grid)}
-    h1{margin:0 0 4px 0;font-size:22px}
+    h1{margin:0 0 4px 0;font-size:22px;font-weight:500}
     .sub{color:var(--muted);font-size:14px;max-width:900px}
-    main{max-width:1200px;margin:0 auto;padding:16px}
-    .panel{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-    .card{border:1px solid var(--grid);border-radius:10px;padding:12px;background:#fafafa}
-    label{font-size:13px;color:var(--muted)}
-    select, input[type="range"], button{width:100%;padding:8px;border:1px solid var(--grid);border-radius:8px;background:#fff}
-    button{cursor:pointer}
+    main{max-width:1240px;margin:0 auto;padding:16px}
+    .panel{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:12px;align-items:start}
+    .card{border:1px solid var(--grid);border-radius:12px;padding:14px;background:#fafafa;box-shadow:0 2px 6px rgba(0,0,0,.04)}
+    label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+    select, input[type="range"], button{width:100%;padding:8px;border:1px solid var(--grid);border-radius:10px;background:#fff;font-size:14px}
+    button{cursor:pointer;transition:all .15s ease;border-color:#dcdcdc}
+    button:hover{background:#f2f2f2}
     .row{display:grid;grid-template-columns:repeat(3, 1fr);gap:12px}
-    .row4{display:grid;grid-template-columns:repeat(4, 1fr);gap:12px}
-    .charts{display:grid;grid-template-columns:1fr;gap:16px}
-    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .charts{display:grid;grid-template-columns:1fr;gap:18px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
     .small{font-size:12px;color:var(--muted)}
     .legend-pill{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--grid);margin-right:6px;font-size:12px}
     .err{color:#b00020;font-size:13px}
-    footer{max-width:1200px;margin:24px auto 32px auto;padding:0 16px;color:var(--muted);font-size:12px;text-align:right}
+    footer{max-width:1240px;margin:24px auto 32px auto;padding:0 16px;color:var(--muted);font-size:12px;text-align:right}
     #logBox{margin-top:16px;white-space:pre-line}
+    .card-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+    .card-header h3{margin:0;font-size:18px;font-weight:600;color:#222}
+    .card-header .eyebrow{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+    .card-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .pill-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+    .control-inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .control-inline select{width:auto;min-width:180px}
+    .control-inline label{margin:0;display:flex;align-items:center;gap:6px}
+    .plot{height:100%}
+    .tall{min-height:460px}
+    .mid{min-height:360px}
+    .slim{min-height:320px}
     @media (max-width:900px){
       .panel{grid-template-columns:1fr}
       .grid2{grid-template-columns:1fr}
-      .row{grid-template-columns:1fr}
-      .row4{grid-template-columns:1fr 1fr}
+      .card-header{flex-direction:column;align-items:flex-start}
+      .card-actions{width:100%;justify-content:flex-start}
     }
   </style>
 </head>
@@ -51,58 +63,106 @@
 <main>
   <div class="panel">
     <div class="card">
-      <label for="territorySel">Субъект РФ</label>
+      <label for="territorySel">Субъект Российской Федерации</label>
       <select id="territorySel"></select>
     </div>
     <div class="card">
-      <label for="scenarioSel">Сценарий численности населения</label>
-      <select id="scenarioSel">
-        <option value="withMIG">С учётом миграции</option>
-        <option value="noMIG">Без миграции</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="row4">
-    <div class="card">
-      <label>Год для половозрастной пирамиды: <span id="yrLbl">2025</span></label>
-      <input id="yearRange" type="range" min="2017" max="2100" step="1" value="2025"/>
-      <div class="small">Слайдер влияет только на пирамиду.</div>
-    </div>
-    <div class="card">
-      <label>Отображение факт/прогноз</label>
-      <div class="small">
+      <label>Отображение факт / прогноз</label>
+      <div class="pill-row">
         <span class="legend-pill">сплошная линия — факт</span>
         <span class="legend-pill" style="border-style:dashed">штрих — прогноз</span>
-      </div>
-      <div class="small">Для миграции: столбцы — сальдо, линии — приток/отток.</div>
-    </div>
-    <div class="card">
-      <label>Слои миграции</label>
-      <div class="small">
-        <label><input type="checkbox" id="chkMigMale" checked> Мужчины</label><br>
-        <label><input type="checkbox" id="chkMigFem" checked> Женщины</label><br>
-        <label><input type="checkbox" id="chkMigTot" checked> Всего</label>
-      </div>
-    </div>
-    <div class="card">
-      <label>Экспорт графиков</label>
-      <div class="row" style="grid-template-columns:1fr 1fr 1fr">
-        <button id="btnPNG1">TFR → PNG</button>
-        <button id="btnPNG2">ОПЖ → PNG</button>
-        <button id="btnPNG3">Миграция → PNG</button>
+        <span class="legend-pill">столбцы — миграционное сальдо</span>
       </div>
     </div>
   </div>
 
   <div class="charts">
-    <div id="chartTFR" class="card" style="height:360px"></div>
-    <div class="grid2">
-      <div id="chartLE" class="card" style="height:380px"></div>
-      <div id="chartPop" class="card" style="height:380px"></div>
+    <div class="card tall">
+      <div class="card-header">
+        <div>
+          <div class="eyebrow">Долгосрочный прогноз</div>
+          <h3>Общая численность населения, человек</h3>
+        </div>
+        <div class="card-actions">
+          <button id="btnPopPNG">PNG</button>
+          <button id="btnPopXLSX">XLSX</button>
+        </div>
+      </div>
+      <div id="chartPop" class="plot" style="height:430px"></div>
     </div>
-    <div id="chartMIG" class="card" style="height:420px"></div>
-    <div id="chartPYR" class="card" style="height:480px"></div>
+
+    <div class="grid2">
+      <div class="card mid">
+        <div class="card-header">
+          <div>
+            <div class="eyebrow">Рождаемость</div>
+            <h3>Суммарный коэффициент рождаемости, детей на женщину</h3>
+          </div>
+          <div class="card-actions">
+            <button id="btnTFRPNG">PNG</button>
+            <button id="btnTFRXLSX">XLSX</button>
+          </div>
+        </div>
+        <div id="chartTFR" class="plot" style="height:320px"></div>
+      </div>
+      <div class="card mid">
+        <div class="card-header">
+          <div>
+            <div class="eyebrow">Ожидаемая продолжительность жизни</div>
+            <h3>ОПЖ при рождении, лет</h3>
+          </div>
+          <div class="card-actions">
+            <button id="btnLEPNG">PNG</button>
+            <button id="btnLEXLSX">XLSX</button>
+          </div>
+        </div>
+        <div id="chartLE" class="plot" style="height:320px"></div>
+      </div>
+    </div>
+
+    <div class="card mid">
+      <div class="card-header" style="flex-wrap:wrap; gap:16px">
+        <div>
+          <div class="eyebrow">Миграция населения</div>
+          <h3>Миграционное сальдо и потоки, человек</h3>
+        </div>
+        <div class="control-inline" style="margin-left:auto">
+          <label><input type="checkbox" id="chkMigMale" checked> Мужчины</label>
+          <label><input type="checkbox" id="chkMigFem" checked> Женщины</label>
+          <label><input type="checkbox" id="chkMigTot" checked> Всего</label>
+        </div>
+        <div class="card-actions">
+          <button id="btnMigPNG">PNG</button>
+          <button id="btnMigXLSX">XLSX</button>
+        </div>
+      </div>
+      <div id="chartMIG" class="plot" style="height:360px"></div>
+    </div>
+
+    <div class="card mid">
+      <div class="card-header" style="flex-wrap:wrap;gap:14px">
+        <div>
+          <div class="eyebrow">Структура населения</div>
+          <h3>Половозрастная пирамида, человек</h3>
+        </div>
+        <div class="control-inline">
+          <label for="scenarioSel">Сценарий численности населения</label>
+          <select id="scenarioSel">
+            <option value="withMIG">С учётом миграции</option>
+            <option value="noMIG">Без миграции</option>
+          </select>
+        </div>
+        <div class="control-inline" style="flex:1;min-width:220px">
+          <label style="flex:1">Год для половозрастной пирамиды: <span id="yrLbl">2025</span></label>
+          <input id="yearRange" type="range" min="2017" max="2100" step="1" value="2025" style="flex:2"/>
+        </div>
+        <div class="card-actions">
+          <button id="btnPyrPNG">PNG</button>
+          <button id="btnPyrXLSX">XLSX</button>
+        </div>
+      </div>
+      <div id="chartPYR" class="plot" style="height:430px"></div>
+    </div>
   </div>
 
   <div id="logBox" class="card small"></div>
@@ -129,6 +189,17 @@ const state = {
   terrs: [],
   years: {min:2017, max:2100}
 };
+
+function exportToXLSX(filename, rows, sheetName='Данные'){
+  if(!rows || !rows.length){
+    alert('Нет данных для выгрузки. Проверьте выбранные фильтры.');
+    return;
+  }
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = {SheetNames:[sheetName], Sheets:{}};
+  wb.Sheets[sheetName] = ws;
+  XLSX.writeFile(wb, filename);
+}
 
 // ------------------- Утилиты -------------------
 function trim(x){ return (x==null? '' : String(x)).trim(); }
@@ -504,7 +575,7 @@ function initUI(){
   document.getElementById('yrLbl').textContent = yRange.value;
 
   selT.addEventListener('change', renderAll);
-  document.getElementById('scenarioSel').addEventListener('change', renderAll);
+  document.getElementById('scenarioSel').addEventListener('change', renderPyramid);
   yRange.addEventListener('input', e=>{
     document.getElementById('yrLbl').textContent = e.target.value;
     renderPyramid();
@@ -512,10 +583,17 @@ function initUI(){
   document.getElementById('chkMigMale').addEventListener('change', renderMigration);
   document.getElementById('chkMigFem').addEventListener('change', renderMigration);
   document.getElementById('chkMigTot').addEventListener('change', renderMigration);
+  document.getElementById('btnTFRPNG').onclick = ()=> Plotly.downloadImage('chartTFR', {format:'png', filename:'tfr'});
+  document.getElementById('btnLEPNG').onclick  = ()=> Plotly.downloadImage('chartLE',  {format:'png', filename:'life_expectancy'});
+  document.getElementById('btnMigPNG').onclick = ()=> Plotly.downloadImage('chartMIG', {format:'png', filename:'migration'});
+  document.getElementById('btnPopPNG').onclick = ()=> Plotly.downloadImage('chartPop', {format:'png', filename:'population_total'});
+  document.getElementById('btnPyrPNG').onclick = ()=> Plotly.downloadImage('chartPYR', {format:'png', filename:'population_pyramid'});
 
-  document.getElementById('btnPNG1').onclick = ()=> Plotly.downloadImage('chartTFR', {format:'png', filename:'TFR'});
-  document.getElementById('btnPNG2').onclick = ()=> Plotly.downloadImage('chartLE',  {format:'png', filename:'LE'});
-  document.getElementById('btnPNG3').onclick = ()=> Plotly.downloadImage('chartMIG', {format:'png', filename:'Migration'});
+  document.getElementById('btnTFRXLSX').onclick = exportTFRXLSX;
+  document.getElementById('btnLEXLSX').onclick  = exportLEXLSX;
+  document.getElementById('btnMigXLSX').onclick = exportMigXLSX;
+  document.getElementById('btnPopXLSX').onclick = exportPopXLSX;
+  document.getElementById('btnPyrXLSX').onclick = exportPyrXLSX;
 
   renderAll();
 }
@@ -526,6 +604,106 @@ function renderAll(){
   renderPopTotal();
   renderMigration();
   renderPyramid();
+}
+
+function exportTFRXLSX(){
+  const terr = document.getElementById('territorySel').value;
+  const rows = state.tfr
+    .filter(r=> r.Территория===terr)
+    .map(r=>({
+      Территория:r.Территория,
+      Год:r.Год,
+      'СКР, детей на женщину': r.TFR,
+      Статус:r.Статус
+    }));
+  exportToXLSX(`tfr_${terr}.xlsx`, rows, 'СКР');
+}
+
+function exportLEXLSX(){
+  const terr = document.getElementById('territorySel').value;
+  const rows = state.le
+    .filter(r=> r.Территория===terr)
+    .map(r=>({
+      Территория:r.Территория,
+      Пол:r.Пол,
+      Год:r.Год,
+      'ОПЖ при рождении, лет': r.LE,
+      Статус:r.Статус
+    }));
+  exportToXLSX(`le_${terr}.xlsx`, rows, 'ОПЖ');
+}
+
+function exportPopXLSX(){
+  const terr = document.getElementById('territorySel').value;
+  const scenarios = [
+    {key:'withMIG', title:'С учётом миграции'},
+    {key:'noMIG', title:'Без миграции'}
+  ];
+  const rows = [];
+  for(const scen of scenarios){
+    const src = (scen.key==='withMIG'? state.pop_with : state.pop_nom).filter(r=> r.Территория===terr);
+    const grouped = new Map();
+    src.forEach(r=>{
+      const year = r.Год;
+      const rec = grouped.get(year) || {численность:0, статус:r.Статус};
+      rec.численность += r.Численность || 0;
+      rec.статус = r.Статус || rec.статус;
+      grouped.set(year, rec);
+    });
+    Array.from(grouped.keys()).sort((a,b)=>a-b).forEach(y=>{
+      const info = grouped.get(y);
+      rows.push({
+        Территория:terr,
+        Сценарий:scen.title,
+        Год:y,
+        'Численность, человек': Math.round(info.численность),
+        Статус:info.статус
+      });
+    });
+  }
+  exportToXLSX(`population_${terr}.xlsx`, rows, 'Численность');
+}
+
+function exportMigXLSX(){
+  const terr = document.getElementById('territorySel').value;
+  const showM = document.getElementById('chkMigMale').checked;
+  const showF = document.getElementById('chkMigFem').checked;
+  const showT = document.getElementById('chkMigTot').checked;
+  const allowed = new Set();
+  if(showM) allowed.add('Мужчины');
+  if(showF) allowed.add('Женщины');
+  if(showT) allowed.add('Всего');
+  const rows = state.mig
+    .filter(r=> r.Территория===terr && allowed.has(r.Пол))
+    .map(r=>({
+      Территория:r.Территория,
+      Пол:r.Пол,
+      Год:r.Год,
+      'Прибыло, человек': r.Прибыл,
+      'Выбыло, человек': r.Выбыл,
+      'Сальдо, человек': r.Сальдо,
+      Статус:r.Статус
+    }));
+  exportToXLSX(`migration_${terr}.xlsx`, rows, 'Миграция');
+}
+
+function exportPyrXLSX(){
+  const terr = document.getElementById('territorySel').value;
+  const scen = document.getElementById('scenarioSel').value;
+  const year = parseInt(document.getElementById('yearRange').value,10);
+  const title = scen==='withMIG'? 'С учётом миграции' : 'Без миграции';
+  const src  = (scen==='withMIG'? state.pop_with : state.pop_nom)
+                 .filter(r=> r.Территория===terr && r.Год===year);
+  const rows = src.map(r=>({
+    Территория:r.Территория,
+    Сценарий:title,
+    Год:r.Год,
+    Возраст:r.Возраст,
+    Пол:r.Пол,
+    'Численность, человек': r.Численность,
+    Статус:r.Статус
+  }));
+  exportToXLSX(`pyramid_${terr}_${year}.xlsx`, rows, 'Пирамида');
 }
 
 // ----- TFR -----
@@ -541,7 +719,7 @@ function renderTFR(){
       y: fact.map(d=>d.TFR),
       mode:'lines',
       line:{color:'#1f77b4', width:2},
-      name:'TFR (факт)'
+      name:'СКР (факт)'
     });
   }
   if(fcst.length){
@@ -550,12 +728,12 @@ function renderTFR(){
       y: fcst.map(d=>d.TFR),
       mode:'lines',
       line:{color:'#1f77b4', width:2, dash:'dash'},
-      name:'TFR (прогноз)'
+      name:'СКР (прогноз)'
     });
   }
   const layout = {
-    margin:{l:60,r:20,t:30,b:40},
-    yaxis:{title:'детей на женщину', zeroline:false},
+    margin:{l:60,r:20,t:20,b:40},
+    yaxis:{title:'Детей на одну женщину', zeroline:false},
     xaxis:{title:'Год'},
     legend:{orientation:'h'}
   };
@@ -575,14 +753,14 @@ function renderLE(){
   const fc = fems .filter(r=> (r.Статус||'').toLowerCase().startsWith('прог'));
 
   const tr=[];
-  if(mf.length) tr.push({x:mf.map(d=>d.Год), y:mf.map(d=>d.LE), mode:'lines', line:{color:'#1f77b4'}, name:'ОПЖ мужчины (факт)'});
-  if(mc.length) tr.push({x:mc.map(d=>d.Год), y:mc.map(d=>d.LE), mode:'lines', line:{color:'#1f77b4', dash:'dash'}, name:'ОПЖ мужчины (прогноз)'});
-  if(ff.length) tr.push({x:ff.map(d=>d.Год), y:ff.map(d=>d.LE), mode:'lines', line:{color:'#d62728'}, name:'ОПЖ женщины (факт)'});
-  if(fc.length) tr.push({x:fc.map(d=>d.Год), y:fc.map(d=>d.LE), mode:'lines', line:{color:'#d62728', dash:'dash'}, name:'ОПЖ женщины (прогноз)'});
+  if(mf.length) tr.push({x:mf.map(d=>d.Год), y:mf.map(d=>d.LE), mode:'lines', line:{color:'#1f77b4'}, name:'Мужчины (факт)'});
+  if(mc.length) tr.push({x:mc.map(d=>d.Год), y:mc.map(d=>d.LE), mode:'lines', line:{color:'#1f77b4', dash:'dash'}, name:'Мужчины (прогноз)'});
+  if(ff.length) tr.push({x:ff.map(d=>d.Год), y:ff.map(d=>d.LE), mode:'lines', line:{color:'#d62728'}, name:'Женщины (факт)'});
+  if(fc.length) tr.push({x:fc.map(d=>d.Год), y:fc.map(d=>d.LE), mode:'lines', line:{color:'#d62728', dash:'dash'}, name:'Женщины (прогноз)'});
 
   const layout = {
-    margin:{l:60,r:20,t:30,b:40},
-    yaxis:{title:'лет', zeroline:false},
+    margin:{l:60,r:20,t:20,b:40},
+    yaxis:{title:'Лет', zeroline:false},
     xaxis:{title:'Год'},
     legend:{orientation:'h'}
   };
@@ -592,32 +770,37 @@ function renderLE(){
 // ----- Численность населения (итого) -----
 function renderPopTotal(){
   const terr = document.getElementById('territorySel').value;
-  const scen = document.getElementById('scenarioSel').value;
-  const src  = (scen==='withMIG'? state.pop_with : state.pop_nom).filter(r=> r.Территория===terr);
-  if(!src.length){
+  const scenarios = [
+    {key:'withMIG', title:'С учётом миграции', color:'#2ca02c'},
+    {key:'noMIG', title:'Без миграции', color:'#9467bd'}
+  ];
+
+  const tr=[];
+  for(const scen of scenarios){
+    const src = (scen.key==='withMIG'? state.pop_with : state.pop_nom).filter(r=> r.Территория===terr);
+    if(!src.length) continue;
+    const grouped = new Map();
+    src.forEach(r=> grouped.set(r.Год, (grouped.get(r.Год)||0) + (r.Численность||0)));
+
+    const factYears = new Set(src.filter(r=> (r.Статус||'').toLowerCase().startsWith('наб')).map(r=> r.Год));
+    const years = Array.from(grouped.keys()).sort((a,b)=>a-b);
+    const xFact = years.filter(y=> factYears.has(y));
+    const yFact = xFact.map(y=> grouped.get(y));
+    const xFcst = years.filter(y=> !factYears.has(y));
+    const yFcst = xFcst.map(y=> grouped.get(y));
+
+    if(xFact.length) tr.push({x:xFact, y:yFact, mode:'lines', line:{color:scen.color, width:3}, name:`${scen.title} (факт)`});
+    if(xFcst.length) tr.push({x:xFcst, y:yFcst, mode:'lines', line:{color:scen.color, dash:'dash', width:3}, name:`${scen.title} (прогноз)`});
+  }
+
+  if(!tr.length){
     Plotly.purge('chartPop');
     return;
   }
-  const grp = new Map();
-  for(const r of src){
-    const year = r.Год;
-    grp.set(year, (grp.get(year)||0) + (r.Численность||0));
-  }
-  const years = Array.from(grp.keys()).sort((a,b)=>a-b);
-  const factYears = new Set(src.filter(r=> (r.Статус||'').toLowerCase().startsWith('наб')).map(r=> r.Год));
-
-  const xFact = years.filter(y=> factYears.has(y));
-  const yFact = xFact.map(y=> grp.get(y));
-  const xFcst = years.filter(y=> !factYears.has(y));
-  const yFcst = xFcst.map(y=> grp.get(y));
-
-  const tr=[];
-  if(xFact.length) tr.push({x:xFact, y:yFact, mode:'lines', line:{color:'#2ca02c'}, name:'Численность (факт)'});
-  if(xFcst.length) tr.push({x:xFcst, y:yFcst, mode:'lines', line:{color:'#2ca02c', dash:'dash'}, name:'Численность (прогноз)'});
 
   const layout = {
     margin:{l:70,r:20,t:30,b:40},
-    yaxis:{title:'человек', zeroline:false, separatethousands:true},
+    yaxis:{title:'Человек', zeroline:false, separatethousands:true},
     xaxis:{title:'Год'},
     legend:{orientation:'h'}
   };
@@ -706,8 +889,8 @@ function renderMigration(){
 
   const layout = {
     barmode:'overlay',
-    margin:{l:70,r:20,t:30,b:40},
-    yaxis:{title:'человек', separatethousands:true},
+    margin:{l:70,r:20,t:20,b:40},
+    yaxis:{title:'Человек', separatethousands:true},
     xaxis:{title:'Год'},
     legend:{orientation:'h'}
   };
@@ -747,7 +930,7 @@ function renderPyramid(){
       orientation:'h',
       name:'Мужчины',
       marker:{color:'#1f77b4'},
-      hovertemplate:'%{y}: %{text} чел.<extra></extra>',
+      hovertemplate:'%{y} лет: %{text} чел.<extra></extra>',
       text: male.map(v=> Math.abs(v).toLocaleString('ru-RU'))
     },
     {
@@ -757,18 +940,17 @@ function renderPyramid(){
       orientation:'h',
       name:'Женщины',
       marker:{color:'#d62728'},
-      hovertemplate:'%{y}: %{text} чел.<extra></extra>',
+      hovertemplate:'%{y} лет: %{text} чел.<extra></extra>',
       text: female.map(v=> v.toLocaleString('ru-RU'))
     }
   ];
 
   const layout = {
     barmode:'relative',
-    margin:{l:60,r:20,t:30,b:40},
-    xaxis:{title:'человек', tickformat:',.0', zeroline:true},
-    yaxis:{title:'возраст', autorange:'reversed'},
-    legend:{orientation:'h'},
-    title:`Половозрастная пирамида — ${terr}, ${year}`
+    margin:{l:70,r:20,t:10,b:40},
+    xaxis:{title:'Человек', tickformat:',.0', zeroline:true},
+    yaxis:{title:'Возраст, лет', categoryorder:'array', categoryarray:[...ages].reverse()},
+    legend:{orientation:'h'}
   };
 
   Plotly.newPlot('chartPYR', traces, layout, {responsive:true, displayModeBar:false});
